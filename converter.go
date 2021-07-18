@@ -1,24 +1,46 @@
 package main
 
-type CurrencyConverter struct {
-	From   Currency
-	To     Currency
-	Amount float64
+import (
+	"fmt"
+	"strings"
+	"time"
+
+	"strconv"
+)
+
+// Exchange rates uses USD as a reference currency.
+var exchangeRates = map[string]float64{
+	"NGN": 411.50,
+	"KSH": 108.17,
+	"GHS": 5.95,
 }
 
-type Currency string
+type Currency struct {
+	Name  string
+	Value float64
+}
 
 type ConversionResult struct {
-	Currency
-	Value float64
+	From Currency
+	To   Currency
+	Time time.Time
 }
 
 func Convert(from, to string, amount float64) ConversionResult {
 	// conversion logic
 	// check if currency is valid.
 
+	fromPerUSD := exchangeRates[strings.ToUpper(from)]
+	toPerUSD := exchangeRates[strings.ToUpper(to)]
+
+	value := (amount * toPerUSD) / fromPerUSD
+
+	// Floating point arithmetic workaround
+	value, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", value), 64)
+
 	return ConversionResult{
-		Currency: Currency(to),
-		Value:    0.55,
+		From: Currency{from, amount},
+		To:   Currency{to, value},
+		Time: time.Now(),
 	}
 }

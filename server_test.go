@@ -17,15 +17,18 @@ func TestGETConvert(t *testing.T) {
 
 		server.ServeHTTP(response, request)
 
-		got := 0.55
-
 		apiResponse := &APIResponse{}
 
 		data, _ := io.ReadAll(response.Body)
 
 		_ = json.Unmarshal(data, apiResponse)
 
-		want := apiResponse.Data["to"].Value
+		want := 0.55
+		got := apiResponse.Data.To.Value
+
+		if response.Code != http.StatusOK {
+			t.Errorf("Expeected %d status code, but got %d", http.StatusOK, response.Code)
+		}
 
 		if got != want {
 			t.Errorf("got %.2f, want %.2f", got, want)

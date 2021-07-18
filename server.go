@@ -14,12 +14,12 @@ type Server struct {
 
 // APIResponse represents the data send back to the user by the api.
 type APIResponse struct {
-	Status  string                      `json:"status,omitempty"`
-	Message string                      `json:"message,omitempty"`
-	Data    map[string]ConversionResult `json:"data"`
+	Status  string           `json:"status,omitempty"`
+	Message string           `json:"message,omitempty"`
+	Data    ConversionResult `json:"data"`
 }
 
-func buildResponse(status, message string, data map[string]ConversionResult) *APIResponse {
+func buildResponse(status, message string, data ConversionResult) *APIResponse {
 	return &APIResponse{status, message, data}
 }
 
@@ -38,7 +38,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if len(paths) < 3 {
 		w.WriteHeader(401)
-		response := buildResponse("Error", "Bad request", nil)
+		response := buildResponse("Error", "Bad request", ConversionResult{})
 		fmt.Fprint(w, response.JSON())
 		return
 	}
@@ -49,12 +49,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	res := Convert(from, to, amount)
 
-	data := map[string]ConversionResult{
-		"to": {
-			Value: res.Value,
-		},
-	}
-	response := buildResponse("", "", data)
+	response := buildResponse("", "", res)
 
 	fmt.Fprint(w, response.JSON())
 }
