@@ -18,7 +18,7 @@ This is a currency converter API which converts only the following currencies fr
            "value": 10.00,
        },
        "to" : {
-           "currency": "ngn"
+           "currency": "ngn",
            "value": 0.10,
        }
    }
@@ -26,11 +26,11 @@ This is a currency converter API which converts only the following currencies fr
 ```
 
 #### Running locally
-Clone the repo and make sure you have &gt;go1.16 installed, run `go build` and start the program.
+Clone the repo and make sure you have &gt;=go1.16 installed, run `go build` and start the program.
 
 #### Running tests
 In the root directory, you can run tests with the following command 
-```
+```go
 go test
 ```
 
