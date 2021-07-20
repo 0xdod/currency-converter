@@ -9,8 +9,7 @@ import (
 	"strings"
 )
 
-type Server struct {
-}
+type Server struct{}
 
 // APIResponse represents the data send back to the user by the api.
 type APIResponse struct {
@@ -27,7 +26,8 @@ func buildResponse(status, message string, data *ConversionResult) *APIResponse 
 func (a *APIResponse) JSON() string {
 	data, err := json.Marshal(a)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return ""
 	}
 	return string(data)
 }
@@ -42,7 +42,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	paths := strings.Split(strings.TrimPrefix(r.URL.Path, "/convert/"), "/")
 	if len(paths) < 3 {
-		w.WriteHeader(401)
+		w.WriteHeader(http.StatusBadRequest)
 		response := buildResponse("error", "Bad request", nil)
 		fmt.Fprint(w, response.JSON())
 		return
@@ -55,7 +55,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	res, err := Convert(from, to, amount)
 
 	if err != nil {
-		w.WriteHeader(403)
+		w.WriteHeader(422)
 		response := buildResponse("error", err.Error(), &res)
 		fmt.Fprint(w, response.JSON())
 		return
