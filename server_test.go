@@ -9,7 +9,7 @@ import (
 )
 
 func TestGETConvert(t *testing.T) {
-	t.Run("returns conversion result", func(t *testing.T) {
+	t.Run("should perform successful conversion", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/convert/10/ksh/ghs", nil)
 		response := httptest.NewRecorder()
 

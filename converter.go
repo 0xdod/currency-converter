@@ -1,9 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"strconv"
 )
@@ -16,22 +16,23 @@ var exchangeRates = map[string]float64{
 }
 
 type Currency struct {
-	Name  string
-	Value float64
+	Name  string  `json:"currency"`
+	Value float64 `json:"value"`
 }
 
 type ConversionResult struct {
-	From Currency
-	To   Currency
-	Time time.Time
+	From Currency `json:"from"`
+	To   Currency `json:"to"`
 }
 
-func Convert(from, to string, amount float64) ConversionResult {
-	// conversion logic
-	// check if currency is valid.
+func Convert(from, to string, amount float64) (ConversionResult, error) {
 
 	fromPerUSD := exchangeRates[strings.ToUpper(from)]
 	toPerUSD := exchangeRates[strings.ToUpper(to)]
+
+	if fromPerUSD == 0 || toPerUSD == 0 {
+		return ConversionResult{}, errors.New("Not a valid currency")
+	}
 
 	value := (amount * toPerUSD) / fromPerUSD
 
@@ -41,6 +42,5 @@ func Convert(from, to string, amount float64) ConversionResult {
 	return ConversionResult{
 		From: Currency{from, amount},
 		To:   Currency{to, value},
-		Time: time.Now(),
-	}
+	}, nil
 }

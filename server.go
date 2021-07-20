@@ -14,12 +14,12 @@ type Server struct {
 
 // APIResponse represents the data send back to the user by the api.
 type APIResponse struct {
-	Status  string           `json:"status,omitempty"`
-	Message string           `json:"message,omitempty"`
-	Data    ConversionResult `json:"data"`
+	Status  string            `json:"status,omitempty"`
+	Message string            `json:"message,omitempty"`
+	Data    *ConversionResult `json:"data"`
 }
 
-func buildResponse(status, message string, data ConversionResult) *APIResponse {
+func buildResponse(status, message string, data *ConversionResult) *APIResponse {
 	return &APIResponse{status, message, data}
 }
 
@@ -34,11 +34,16 @@ func (a *APIResponse) JSON() string {
 
 // /convert/amount/from/to
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	paths := strings.Split(strings.TrimPrefix(r.URL.Path, "/convert/"), "/")
+	if !strings.HasPrefix(r.URL.Path, "/convert/") {
+		w.WriteHeader(404)
+		fmt.Fprint(w, `{"status": "error", "message": "route not found"}`)
+		return
+	}
 
+	paths := strings.Split(strings.TrimPrefix(r.URL.Path, "/convert/"), "/")
 	if len(paths) < 3 {
 		w.WriteHeader(401)
-		response := buildResponse("Error", "Bad request", ConversionResult{})
+		response := buildResponse("error", "Bad request", nil)
 		fmt.Fprint(w, response.JSON())
 		return
 	}
@@ -47,9 +52,16 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	from := paths[1]
 	to := paths[2]
 
-	res := Convert(from, to, amount)
+	res, err := Convert(from, to, amount)
 
-	response := buildResponse("", "", res)
+	if err != nil {
+		w.WriteHeader(403)
+		response := buildResponse("error", err.Error(), &res)
+		fmt.Fprint(w, response.JSON())
+		return
+	}
+
+	response := buildResponse("success", "Conversion succcessful", &res)
 
 	fmt.Fprint(w, response.JSON())
 }
