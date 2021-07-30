@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	server := &Server{}
+	server := NewServer()
 	log.Println("Server started on port :8000")
 	log.Fatal(http.ListenAndServe(":8000", server))
 }

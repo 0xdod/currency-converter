@@ -9,7 +9,17 @@ import (
 	"strings"
 )
 
-type Server struct{}
+type Server struct {
+	http.Handler
+}
+
+func NewServer() *Server {
+	s := &Server{}
+	router := http.NewServeMux()
+	router.HandleFunc("/convert/", convertHandler)
+	s.Handler = router
+	return s
+}
 
 // APIResponse represents the data send back to the user by the api.
 type APIResponse struct {
@@ -32,14 +42,7 @@ func (a *APIResponse) JSON() string {
 	return string(data)
 }
 
-// /convert/amount/from/to
-func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if !strings.HasPrefix(r.URL.Path, "/convert/") {
-		w.WriteHeader(404)
-		fmt.Fprint(w, `{"status": "error", "message": "route not found"}`)
-		return
-	}
-
+func convertHandler(w http.ResponseWriter, r *http.Request) {
 	paths := strings.Split(strings.TrimPrefix(r.URL.Path, "/convert/"), "/")
 	if len(paths) < 3 {
 		w.WriteHeader(http.StatusBadRequest)
@@ -47,7 +50,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, response.JSON())
 		return
 	}
-
 	amount, _ := strconv.ParseFloat(paths[0], 64)
 	from := paths[1]
 	to := paths[2]
@@ -61,7 +63,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := buildResponse("success", "Conversion succcessful", &res)
+	response := buildResponse("success", "conversion succcessful", &res)
 
 	fmt.Fprint(w, response.JSON())
 }

@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 )
 
@@ -13,25 +13,25 @@ func TestGETConvert(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/convert/10/ksh/ghs", nil)
 		response := httptest.NewRecorder()
 
-		server := &Server{}
+		conversionResult := ConversionResult{
+			From: Currency{"ksh", 10},
+			To:   Currency{"ghs", 0.55},
+		}
 
+		server := NewServer()
 		server.ServeHTTP(response, request)
 
-		apiResponse := &APIResponse{}
+		want := buildResponse("success", "conversion successful", &conversionResult)
+		got := &APIResponse{}
 
-		data, _ := io.ReadAll(response.Body)
-
-		_ = json.Unmarshal(data, apiResponse)
-
-		want := 0.55
-		got := apiResponse.Data.To.Value
+		_ = json.NewDecoder(response.Body).Decode(&got)
 
 		if response.Code != http.StatusOK {
 			t.Errorf("Expeected %d status code, but got %d", http.StatusOK, response.Code)
 		}
 
-		if got != want {
-			t.Errorf("got %.2f, want %.2f", got, want)
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("got %+v, want %+v", got, want)
 		}
 	})
 
@@ -43,18 +43,16 @@ func TestGETConvert(t *testing.T) {
 
 		server.ServeHTTP(response, request)
 
-		apiResponse := &APIResponse{}
+		got := &APIResponse{}
 
-		data, _ := io.ReadAll(response.Body)
-
-		_ = json.Unmarshal(data, apiResponse)
+		_ = json.NewDecoder(response.Body).Decode(got)
 
 		if response.Code != http.StatusBadRequest {
 			t.Errorf("Expeected %d status code, but got %d", http.StatusBadRequest, response.Code)
 		}
 
-		if apiResponse.Status != "error" {
-			t.Errorf("got %s status, expected %s status", apiResponse.Status, "error")
+		if got.Status != "error" {
+			t.Errorf("got %s status, expected %s status", got.Status, "error")
 		}
 	})
 }
